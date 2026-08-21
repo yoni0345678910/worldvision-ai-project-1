@@ -17,9 +17,11 @@
 
 | 이름 | 역할 | 담당 업무 |
 | :---: | :---: | :--- |
-| **유고은** | 백엔드 & AI 엔지니어링 | • FastAPI 기반 RESTful API 아키텍처 설계<br>• LangChain / OpenAI 연동 서비스 모듈 개발<br>• RAG 기반 지식검색 및 Whisper STT 회의록 변환 파이프라인 구축 |
-| **[팀원2 이름]** | [담당 역할] | • [주요 담당 업무 작성] |
-| **[팀원3 이름]** | [담당 역할] | • [주요 담당 업무 작성] |
+| **이수빈** | 프로젝트 오너 | • 전체 프로젝트 일적 및 리소스 관리<br>• 서비스 요구사항 정의 및 최종 결과물 검수 |
+| **김가연** | AI 솔루션 아키텍트 | • 시스템 전체 AI 백엔드/서비스 아키텍처 설계<br>• 데이터 흐름 및 파이프라인 구조화 |
+| **유고은** | AI 엔지니어 | • FastAPI 기반 RESTful API 설계 및 연동<br>• LangChain / OpenAI 활용 핵심 서비스 모듈 개발<br>• RAG 지식검색 및 Whisper STT 회의록 변환 기능 구현 |
+| **김은채** | AI 데이터 사이언티스트 | • 서비스 입출력 데이터 전처리 및 품질 검증<br>• RAG 텍스트 임베딩 데이터셋 구성 및 프롬프트 최적화 |
+| **정예은** | 클라우드 엔지니어 | • 개발 및 배포 환경(Environment) 설정<br>• 의존성 관리, 서버 파이프라인 및 가상환경 안정화 |
 
 ---
 
@@ -49,11 +51,8 @@
 ---
 
 ## 📸 5. 데모 스크린샷
-<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/f311c6ac-adca-459b-989a-545cac5c3456" />
 
-### API 문서화 및 대시보드 (Swagger UI)
-![Swagger UI](https://via.placeholder.com/800x400?text=Swagger+UI+Screenshot+Here)
-> `http://127.0.0.1:8000/docs` 경로에서 interactive하게 API 테스트를 진행할 수 있습니다.
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/f311c6ac-adca-459b-989a-545cac5c3456" />
 
 ---
 

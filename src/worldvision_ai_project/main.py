@@ -23,8 +23,7 @@ async def search_knowledge(request: SearchRequest):
     try:
         result = run_knowledge_search(request.query)
         return SearchResponse(
-            answer=result["answer"],
-            source_documents=result["sources"]
+            answer=result["answer"]
         )
     except Exception as e:
         raise HTTPException(
