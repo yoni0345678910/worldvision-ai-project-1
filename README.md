@@ -1,81 +1,65 @@
-# World Vision AI Project
+# 🌍 WorldVision AI Assistant (월드비전 AI 어시스턴트)
 
-월드비전 생성형 AI 기반 업무지원 서비스의 FastAPI Entry 기본 구조입니다.
+월드비전 임직원의 업무 효율 향상 및 단순 반복 업무 축소를 위한 **AI 백엔드 프로토타입 시스템**입니다.
 
-현재 지식검색, 회의록 생성, 보고서 생성 기능의 API 입출력 구조를 정의하고,
-각 기능의 Workflow를 연결할 수 있도록 기본 Endpoint를 구성했습니다.
+---
 
-## 구현된 API
+## 📌 1. 프로젝트 소개
+* **서비스명**: 월드비전 AI 어시스턴트 (WorldVision AI Assistant API)
+* **목적**: 
+  * 사내 문서 기반의 정확한 정보 제공 (지식검색 RAG)
+  * 회의 음성 파일의 자동 텍스트 변환 및 주요 안건/결정사항 요약 (AI 회의록)
+  * 백엔드 API 중심의 확장성 있는 AI 에이전트 구조 설계
 
-| Method | Endpoint | 설명 |
-| --- | --- | --- |
-| GET | `/health` | 서버 상태 확인 |
-| POST | `/search` | 지식검색 요청 |
-| POST | `/minutes` | 회의 음성 파일 업로드 및 회의록 생성 요청 |
-| POST | `/report` | 보고서 생성 요청 |
+---
 
-현재 `/search`, `/minutes`, `/report`는 실제 AI Workflow 연결 전 단계이며,
-입출력 규격 및 API 동작 확인을 위한 기본 응답을 반환합니다.
+## 👥 2. 팀원 및 역할 분담
 
-## 실행 방법
+| 이름 | 역할 | 담당 업무 |
+| :---: | :---: | :--- |
+| **유고은** | 백엔드 & AI 엔지니어링 | • FastAPI 기반 RESTful API 아키텍처 설계<br>• LangChain / OpenAI 연동 서비스 모듈 개발<br>• RAG 기반 지식검색 및 Whisper STT 회의록 변환 파이프라인 구축 |
+| **[팀원2 이름]** | [담당 역할] | • [주요 담당 업무 작성] |
+| **[팀원3 이름]** | [담당 역할] | • [주요 담당 업무 작성] |
 
-### 1. 의존성 설치
+---
 
-```bash
-uv sync
+## 🛠️ 3. 기술 스택 (Tech Stack)
 
-```
+* **Language**: Python 3.14
+* **Package Manager**: `uv`
+* **Framework**: FastAPI, Uvicorn
+* **AI & LLM**: LangChain, OpenAI API (GPT-4o / GPT-4o-mini, Whisper STT)
+* **Database / Vector Search**: PostgreSQL, `pgvector`
 
-### 2. 개발 서버 실행
+---
 
-```bash
-uv run uvicorn worldvision_ai_project.main:app --reload --app-dir src
-```
+## 🔥 4. 주요 기능 설명
 
-### 3. API 문서 확인
+### 1) 🔍 사내 지식검색 API (`/api/v1/search`)
+* PostgreSQL/pgvector 기반의 임베딩 문서 유사도 검색(RAG) 지원
+* 사용자 질문에 맞춰 사내 문서 내 정확한 출처(Source)와 함께 답변 생성
 
-서버 실행 후 아래 주소에서 Swagger UI를 통해 API를 확인하고 테스트할 수 있습니다.
+### 2) 📝 AI 회의록 작성 API (`/api/v1/minutes`)
+* 회의 음성 파일(mp3, m4a 등) 업로드 및 Whisper 모델 기반 STT(Text Extraction) 수행
+* 회의 요약, 주요 논의사항, 최종 결정사항을 구조화된 JSON 형태로 자동 추출
 
-`http://127.0.0.1:8000/docs`
+### 3) 📊 AI 보고서 생성 API (`/api/v1/report` - 예정)
+* 수집된 개요 및 데이터를 바탕으로 AI 자동 보고서 초안 생성
 
-## 프로젝트 구조
+---
 
-```text
-worldvision-ai-project/
-├── src/
-│   └── worldvision_ai_project/
-│       ├── __init__.py
-│       ├── main.py
-│       └── schemas.py
-├── .gitignore
-├── .python-version
-├── pyproject.toml
-├── uv.lock
-└── README.md
-```
+## 📸 5. 데모 스크린샷
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/f311c6ac-adca-459b-989a-545cac5c3456" />
 
-- `main.py`: FastAPI 애플리케이션 및 API Endpoint 정의
-- `schemas.py`: Pydantic 기반 Request/Response 데이터 규격 정의
-- `pyproject.toml`: 프로젝트 정보 및 의존성 설정
-- `uv.lock`: 의존성 버전 정보
+### API 문서화 및 대시보드 (Swagger UI)
+![Swagger UI](https://via.placeholder.com/800x400?text=Swagger+UI+Screenshot+Here)
+> `http://127.0.0.1:8000/docs` 경로에서 interactive하게 API 테스트를 진행할 수 있습니다.
 
-## 현재 구현 상태
+---
 
-- FastAPI Entry 기본 구조 구성
-- Pydantic 기반 Request/Response 규격 정의
-- `/health` 서버 상태 확인
-- `/search` 지식검색 요청 및 입력값 검증
-- `/minutes` 회의 음성 파일 업로드 및 요청 처리
-- `/report` 보고서 생성 요청 및 입력값 검증
-- Swagger UI를 통한 API 동작 테스트
+## 🚀 6. 실행 방법 (Local Run)
 
-현재 단계에서는 각 AI 기능의 실제 Workflow를 구현하지 않고,
-FastAPI Entry와 기능별 입출력 인터페이스를 우선 구성했습니다.
-
-## 향후 연동
-
-각 Endpoint에 기능별 AI Workflow를 연결하여 확장할 수 있습니다.
-
-- `/search` → RAG 기반 지식검색 Workflow
-- `/minutes` → STT + LLM 기반 회의록 생성 Workflow
-- `/report` → LLM 기반 보고서 생성 Workflow
+### 1) 환경 변수 설정
+최상위 경로에 `.env` 파일 생성 후 OpenAI API 키 등록:
+```env
+OPENAI_API_KEY=sk-proj-...
