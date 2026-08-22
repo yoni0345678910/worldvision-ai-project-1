@@ -1,44 +1,60 @@
-# Embedding Model Comparison
+# RAG Tuning Prototype
 
-DA 임베딩 모델 비교 테스트를 위한 코드입니다.
+2주차 과제에서 구현한 RAG 파라미터 튜닝 및 검색 결과 비교용 프로토타입 코드입니다.
 
-기존 RAG 튜닝 프로토타입을 기반으로 하며,
-동일한 검색 조건에서 OpenAI 임베딩 모델별 검색 결과를 비교할 수 있습니다.
+현재 프로젝트는 FastAPI + PostgreSQL/pgvector 기반으로 구성되어 있으므로,
+본 예제의 Streamlit + FAISS 구조를 그대로 적용하기보다는
+RAG 파라미터 조절 및 검색 결과 비교 방식을 참고하기 위한 코드입니다.
 
-## 비교 모델
+## 주요 기능
 
-- text-embedding-3-small
-- text-embedding-3-large
+- PDF 문서 업로드 및 분석
+- Chunk Size 조절
+- Chunk Overlap 조절
+- Retriever Top-K 조절
+- 파라미터 변경 시 RAG Chain 재생성
+- 문서 페이지 수 및 생성된 Chunk 수 확인
+- Retriever가 검색한 실제 문서 조각 및 출처 페이지 확인
 
-## 테스트 방법
+## RAG 처리 흐름
 
-1. PDF 문서를 업로드합니다.
-2. Chunk Size, Chunk Overlap, Retriever k를 설정합니다.
-3. Embedding Model에서 비교할 모델을 선택합니다.
-4. 동일한 질문을 입력합니다.
-5. `답변 근거 문서 보기`에서 Retriever가 검색한 문서 조각과 페이지를 확인합니다.
-6. Embedding Model만 변경한 뒤 동일한 질문으로 다시 테스트합니다.
-7. small / large 모델의 검색 결과를 비교합니다.
+PDF 업로드  
+→ Document Loader  
+→ Text Splitter  
+→ OpenAI Embedding  
+→ FAISS Vector Store  
+→ Retriever  
+→ LLM  
+→ Answer
 
-## 비교 시 유의사항
+## 파일 구성
 
-임베딩 모델 비교 시 다음 조건은 동일하게 유지합니다.
+- `app.py`
+  - Streamlit 기반 RAG 테스트 UI
+  - Chunk Size / Chunk Overlap / Top-K 조절
+  - 파라미터 변경 감지 및 RAG Chain 재생성
+  - 검색 결과와 실제 근거 문서 확인
 
-- PDF 문서
-- Chunk Size
-- Chunk Overlap
-- Retriever k
-- 질문
+- `rag_module.py`
+  - PDF 문서 로드
+  - Chunking
+  - Embedding 생성
+  - FAISS Vector Store 구성
+  - Retriever 및 RAG Chain 생성
 
-Embedding Model만 변경하여 검색 결과를 비교합니다.
+- `requirements.txt`
+  - 기존 프로토타입 실행 시 사용한 Python 패키지 목록
 
-최종 생성 답변은 LLM 및 PDF 텍스트 추출 상태의 영향을 받을 수 있으므로,
-임베딩 모델의 검색 성능 비교 시에는 `답변 근거 문서 보기`에 표시되는
-Retriever의 검색 결과를 기준으로 확인하는 것을 권장합니다.
+## 현재 프로젝트 적용 시 참고사항
 
-## 실행
+현재 프로젝트에서는 PostgreSQL + pgvector를 사용하고 있으므로
+FAISS Vector Store 구현 자체보다는 다음 부분을 참고하여 활용할 수 있습니다.
 
-프로젝트의 OpenAI API Key 설정 후 실행합니다.
+- `chunk_size`, `chunk_overlap` 파라미터를 문서 Chunking 단계에 적용
+- `top_k` 파라미터를 Retrieval 단계에 적용
+- 파라미터 변경에 따른 RAG 검색 결과 비교
+- Retriever가 실제 검색한 문서 및 출처 확인
+- Document Loader → Chunking → Embedding → Vector DB 적재 흐름 참고
 
-```bash
-streamlit run app.py
+코드 내 `[RAG 튜닝 참고]`, `[출처 반환 참고]` 주석을 통해
+관련 구현 부분을 확인할 수 있습니다.
