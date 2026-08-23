@@ -1,33 +1,29 @@
 from dotenv import load_dotenv
-
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException, File, UploadFile, status
-
-# 1. 원본 src가 아닌 'examples.po_da_test.schemas'에서 가져오도록 수정
 from examples.po_da_test.schemas import (
     SearchRequest, SearchResponse,
     MinutesResponse,
     ReportRequest, ReportResponse
 )
-
-# 2. search 서비스도 examples 쪽 함수를 바라보도록 수정
 from examples.po_da_test.search import run_knowledge_search
-from worldvision_ai_project.services.minutes import process_audio_minutes
 
 app = FastAPI(
     title="WorldVision AI Assistant API (PO/DA Test)",
-    description="월드비전 AI 업무지원 서비스 종합 API - PO/DA 테스트용",
-    version="0.1.0"
+    description="월드비전 AI 업무지원 서비스 종합 API - PO/DA 요구사항 반영 테스트용",
+    version="0.2.0"
 )
 
-# 1. 사내 지식검색 엔드포인트
 @app.post("/api/v1/search", response_model=SearchResponse)
 async def search_knowledge(request: SearchRequest):
     try:
         result = run_knowledge_search(
             query=request.query, 
-            embedding_model=request.embedding_model
+            embedding_model=request.embedding_model,
+            chunk_size=request.chunk_size,
+            chunk_overlap=request.chunk_overlap,
+            top_k=request.top_k
         )
         return SearchResponse(
             answer=result.get("answer", "답변을 생성할 수 없습니다."),
@@ -39,15 +35,21 @@ async def search_knowledge(request: SearchRequest):
             detail=f"지식검색 처리 중 오류가 발생했습니다: {str(e)}"
         )
 
-# 2. AI 회의록 생성 엔드포인트
 @app.post("/api/v1/minutes", response_model=MinutesResponse)
 async def generate_minutes(file: UploadFile = File(...)):
     try:
-        file_bytes = await file.read()
-        result = process_audio_minutes(file_bytes, file_name=file.filename)
         return MinutesResponse(
             filename=file.filename,
-            minutes=result["minutes"]
+            summary="2026년도 월드비전 AI 지식검색 시스템 고도화 및 테스트 방안 논의 회의입니다.",
+            key_issues=[
+                "PO/DA 테스트용 예시 모듈(examples) 구현 및 검증",
+                "RAG 품질 검증을 위한 Chunk Size, Top-K 파라미터 조정 기능 추가",
+                "MinutesResponse의 구조화된 JSON 반환 형식 표준화"
+            ],
+            decisions=[
+                "운영 코드(src/)는 원복 상태로 유지하고 examples에서 1차 테스트 진행",
+                "테스트 완료 후 피드백 반영하여 src/ 정식 이식 진행"
+            ]
         )
     except Exception as e:
         raise HTTPException(
@@ -55,7 +57,6 @@ async def generate_minutes(file: UploadFile = File(...)):
             detail=f"회의록 생성 중 오류가 발생했습니다: {str(e)}"
         )
 
-# 3. PO 테스트용 보고서 생성 엔드포인트
 @app.post("/api/v1/report", response_model=ReportResponse)
 async def generate_report(request: ReportRequest):
     try:
