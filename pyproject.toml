@@ -12,6 +12,8 @@ dependencies = [
     "langchain-community>=0.4.2",
     "langchain-core>=1.6.0",
     "langchain-openai>=1.6.0",
+    "langchain-postgres>=0.0.17",
+    "psycopg2-binary>=2.9.12",
     "python-multipart>=0.0.32",
     "uvicorn[standard]>=0.52.4",
 ]

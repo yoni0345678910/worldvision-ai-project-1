@@ -1,29 +1,27 @@
 from pydantic import BaseModel, Field
 
-#정보 검색
-class SearchRequest(BaseModel):   #입력 규격 ex) 월드비전의주요 사업은?
-    query: str = Field(
-        ...,
-        min_length=1,   #빈 질문을 Pydantic이 Workflow까지 보내지 않고 바로 거절 가능
-        description="사용자가 입력한 지식 검색 질문",
+# 1. 지식검색 요청/응답 스키마 (min_length 및 sources 필드 추가)
+class SearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="사용자가 입력한 지식 검색 질문 (빈 값 방지)")
+    embedding_model: str = Field(
+        default="text-embedding-3-small", 
+        description="사용할 임베딩 모델"
     )
 
-#회의록
-class SearchResponse(BaseModel):   #출력 규격
+class SearchResponse(BaseModel):
     answer: str
+    sources: list[str] = Field(default=[], description="검색된 참고 문서 출처 목록")
 
-class MinutesResponse(BaseModel):   # 회의록 기능 출력 규격
-    filename: str                   # 업로드된 음성 파일명
-    minutes: str                    # 생성된 회의록
+# 2. 회의록 응답 스키마
+class MinutesResponse(BaseModel):
+    filename: str = Field(..., description="업로드된 파일명")
+    summary: str = Field(..., description="회의 전체 요약")
+    key_issues: list[str] = Field(default=[], description="주요 논의사항")
+    decisions: list[str] = Field(default=[], description="결정사항")
 
-#보고서
-class ReportRequest(BaseModel):   # 보고서 생성 기능 입력 규격
-    topic: str = Field(
-        ...,
-        min_length=1,
-        description="생성할 보고서의 주제",
-    )
+# 3. 보고서 요청/응답 스키마
+class ReportRequest(BaseModel):
+    topic: str = Field(..., min_length=1, description="보고서 주제")
 
-
-class ReportResponse(BaseModel):  # 보고서 생성 기능 출력 규격
+class ReportResponse(BaseModel):
     report: str
