@@ -10,6 +10,8 @@ from worldvision_ai_project.schemas import (
     ReportRequest, ReportResponse
 )
 from worldvision_ai_project.services.search import run_knowledge_search
+from worldvision_ai_project.services.minutes import process_audio_minutes
+from worldvision_ai_project.services.report import generate_ai_report
 
 app = FastAPI(
     title="WorldVision AI Assistant API",
@@ -17,7 +19,9 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# 헬스체크 엔드포인트
+ALLOWED_EXTENSIONS = {".flac", ".m4a", ".mp3", ".mp4", ".mpeg", ".mpga", ".oga", ".ogg", ".wav", ".webm"}
+
+# 1. 헬스체크 엔드포인트
 @app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check():
     return {
@@ -26,12 +30,23 @@ async def health_check():
         "version": "0.1.0"
     }
 
+# 2. 지식검색 엔드포인트 (공백 입력 방어 + session_id 세션 기반 기억 + 검색 옵션 반영)
 @app.post("/api/v1/search", response_model=SearchResponse)
 async def search_knowledge(request: SearchRequest):
+    if not request.query or not request.query.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="검색어를 공백으로만 입력할 수 없습니다."
+        )
+
     try:
         result = run_knowledge_search(
-            query=request.query, 
-            embedding_model=request.embedding_model
+            query=request.query,
+            session_id=request.session_id,
+            embedding_model=request.embedding_model,
+            top_k=request.top_k,
+            search_type=request.search_type,
+            filters=request.filters
         )
         return SearchResponse(
             answer=result.get("answer", "답변을 생성할 수 없습니다."),
@@ -43,42 +58,44 @@ async def search_knowledge(request: SearchRequest):
             detail=f"지식검색 처리 중 오류가 발생했습니다: {str(e)}"
         )
 
+# 3. 회의록 생성 엔드포인트 (오디오 확장자 검사 반영)
 @app.post("/api/v1/minutes", response_model=MinutesResponse)
 async def generate_minutes(file: UploadFile = File(...)):
-    temp_file_path = None
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"지원하지 않는 파일 형식입니다. (지원 형식: {', '.join(sorted(ALLOWED_EXTENSIONS))})"
+        )
+
     try:
-        # tempfile.NamedTemporaryFile로 경로 조작(Path Traversal) 보안 차단
-        suffix = os.path.splitext(file.filename)[1]
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_file_path = temp_file.name
+        content = await file.read()
+        result = process_audio_minutes(audio_file_bytes=content, file_name=file.filename)
 
         return MinutesResponse(
             filename=file.filename,
-            summary="2026년도 월드비전 AI 지식검색 및 회의록 시스템 고도화 회의입니다.",
-            key_issues=[
-                "tempfile 모듈 적용을 통한 경로 조작 보안 위험 차단",
-                "프롬프트 인젝션 방어 문구 수록 및 /health 헬스체크 구현"
-            ],
-            decisions=[
-                "보안 및 예외 처리 가이드라인 준수로 시스템 안정성 확보"
-            ]
+            summary=result.get("minutes", "요약 결과를 생성할 수 없습니다."),
+            key_issues=[],
+            decisions=[]
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"회의록 생성 중 오류가 발생했습니다: {str(e)}"
         )
-    finally:
-        if temp_file_path and os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
 
+# 4. 보고서 생성 엔드포인트 (공백 입력 방어 + GPT 연동 반영)
 @app.post("/api/v1/report", response_model=ReportResponse)
 async def generate_report(request: ReportRequest):
+    if not request.topic or not request.topic.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="보고서 주제를 공백으로만 입력할 수 없습니다."
+        )
+
     try:
-        mock_report = f"# {request.topic} 관련 AI 자동 보고서 초안\n\n- 본 보고서는 {request.topic} 주제에 대한 AI 분석 내용입니다."
-        return ReportResponse(report=mock_report)
+        report_content = generate_ai_report(topic=request.topic)
+        return ReportResponse(report=report_content)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
