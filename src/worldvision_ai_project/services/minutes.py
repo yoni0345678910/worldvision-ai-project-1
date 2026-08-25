@@ -3,7 +3,6 @@ from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
-# 1. 회의록 구조화 프롬프트 템플릿
 MINUTES_PROMPT_TEMPLATE = """
 당신은 월드비전의 전문 회의록 작성 AI 도우미입니다.
 아래 제공된 [회의 음성 텍스트]를 바탕으로 회의록을 작성해 주세요.
@@ -23,15 +22,12 @@ MINUTES_PROMPT_TEMPLATE = """
 - 결정사항:
 """
 
-# 2. 음성 파일 STT 및 회의록 생성 핵심 함수
 def process_audio_minutes(audio_file_bytes: bytes, file_name: str):
-    # 1) 음성 파일 임시 저장
     temp_file_path = f"temp_{file_name}"
     with open(temp_file_path, "wb") as f:
         f.write(audio_file_bytes)
         
     try:
-        # 2) Whisper STT 호출 (음성 -> 텍스트)
         client = OpenAI()
         with open(temp_file_path, "rb") as audio_file:
             transcript_response = client.audio.transcriptions.create(
@@ -40,7 +36,6 @@ def process_audio_minutes(audio_file_bytes: bytes, file_name: str):
             )
         transcript_text = transcript_response.text
 
-        # 3) LLM을 통한 회의 내용 구조화
         prompt = ChatPromptTemplate.from_template(MINUTES_PROMPT_TEMPLATE)
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         chain = prompt | llm
@@ -52,6 +47,5 @@ def process_audio_minutes(audio_file_bytes: bytes, file_name: str):
             "transcript": transcript_text
         }
     finally:
-        # 임시 파일 삭제
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)

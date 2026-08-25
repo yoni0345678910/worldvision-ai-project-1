@@ -6,16 +6,21 @@ readme = "README.md"
 authors = [
     { name = "김가연", email = "yoni0345678910@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.141.1",
+    "uvicorn[standard]>=0.52.4",
+    "python-multipart>=0.0.32",
+    "python-dotenv>=1.0.0",
+    "openai>=1.0.0",
+    "pydantic>=2.0.0",
+    "langchain>=0.3.0",
     "langchain-community>=0.4.2",
     "langchain-core>=1.6.0",
     "langchain-openai>=1.6.0",
     "langchain-postgres>=0.0.17",
     "psycopg2-binary>=2.9.12",
-    "python-multipart>=0.0.32",
-    "uvicorn[standard]>=0.52.4",
+    "pgvector>=0.2.0",
 ]
 
 [project.scripts]
