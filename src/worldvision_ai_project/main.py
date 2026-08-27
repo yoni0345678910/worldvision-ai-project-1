@@ -58,7 +58,7 @@ async def search_knowledge(request: SearchRequest):
             detail=f"지식검색 처리 중 오류가 발생했습니다: {str(e)}"
         )
 
-# 3. 회의록 생성 엔드포인트 (오디오 확장자 검사 반영)
+# 3. 회의록 생성 엔드포인트 (오디오 확장자 검사 반영 및 결과 연결 수정)
 @app.post("/api/v1/minutes", response_model=MinutesResponse)
 async def generate_minutes(file: UploadFile = File(...)):
     file_ext = os.path.splitext(file.filename)[1].lower()
@@ -72,11 +72,12 @@ async def generate_minutes(file: UploadFile = File(...)):
         content = await file.read()
         result = process_audio_minutes(audio_file_bytes=content, file_name=file.filename)
 
+        # 서비스 반환값(summary, key_issues, decisions) 매핑 수정
         return MinutesResponse(
             filename=file.filename,
-            summary=result.get("minutes", "요약 결과를 생성할 수 없습니다."),
-            key_issues=[],
-            decisions=[]
+            summary=result.get("summary", "요약 결과를 생성할 수 없습니다."),
+            key_issues=result.get("key_issues", []),
+            decisions=result.get("decisions", [])
         )
     except Exception as e:
         raise HTTPException(

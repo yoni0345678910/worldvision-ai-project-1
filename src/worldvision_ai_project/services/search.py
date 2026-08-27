@@ -36,7 +36,7 @@ RAG_PROMPT_TEMPLATE = """
 def run_knowledge_search(
     query: str,
     session_id: str = "default_session",
-    embedding_model: str = "text-embedding-3-small",
+    embedding_model: str = "text-embedding-3-large",  # 👈 text-embedding-3-large로 변경!
     top_k: int = 3,
     search_type: str = "hybrid",
     filters: Optional[Dict[str, Any]] = None
@@ -69,7 +69,7 @@ def run_knowledge_search(
         "question": query
     })
     
-    # 4) 대화 내용 메모리 저장을 위해 추가
+    # 4) 대화 내용 메모리 저장
     history_obj.add_user_message(query)
     history_obj.add_ai_message(response.content)
     
