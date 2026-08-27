@@ -21,6 +21,7 @@ dependencies = [
     "langchain-postgres>=0.0.17",
     "psycopg2-binary>=2.9.12",
     "pgvector>=0.2.0",
+    "pypdf>=6.16.2",
 ]
 
 [project.scripts]
