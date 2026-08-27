@@ -11,10 +11,10 @@ class SearchRequest(BaseModel):
     )
     session_id: Optional[str] = Field(
         default="default_session", 
-        description="대화 맥락 유지를 위한 고유 세션 ID (예: a1b2c3d4-e5f6-7890-abcd-123456789abc)"
+        description="대화 맥락 유지를 위한 고유 세션 ID"
     )
     embedding_model: str = Field(
-        default="text-embedding-3-small",
+        default="text-embedding-3-large",  # 👈 text-embedding-3-large로 변경!
         description="사용할 임베딩 모델"
     )
     top_k: int = Field(default=3, ge=1, le=10, description="반환할 상위 문서 개수")
