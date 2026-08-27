@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#27342c" flood-opacity=".09"/></filter>
+    <filter id="blueShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#246bfd" flood-opacity=".22"/></filter>
+    <style>
+      text{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;fill:#17233d}.muted{fill:#78859c}.blue{fill:#246bfd}.white{fill:#fff}.bold{font-weight:700}.heavy{font-weight:800}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="#f5f8ff"/>
+  <rect width="264" height="900" fill="#fff"/><line x1="264" y1="0" x2="264" y2="900" stroke="#e7eae7"/>
+  <rect x="27" y="28" width="42" height="42" rx="14" fill="#246bfd" filter="url(#blueShadow)"/>
+  <path d="M48 59C44 55 36 50 36 43c0-7 9-9 12-3 3-6 12-4 12 3 0 7-8 12-12 16z" fill="white"/>
+  <text x="81" y="46" font-size="18" class="heavy">WorldVision</text><text x="81" y="61" font-size="10" class="muted">AI Assistant</text>
+  <rect x="18" y="98" width="228" height="47" rx="13" fill="#edf4ff"/><text x="76" y="127" font-size="14" class="blue bold">＋  새 대화 시작</text>
+  <rect x="18" y="162" width="228" height="47" rx="12" fill="#246bfd" filter="url(#blueShadow)"/><circle cx="42" cy="185" r="7" fill="none" stroke="white" stroke-width="2"/><line x1="47" y1="190" x2="53" y2="196" stroke="white" stroke-width="2"/><text x="69" y="190" font-size="14" class="white bold">사내 지식검색</text>
+  <text x="34" y="236" font-size="20" class="muted">▧</text><text x="69" y="235" font-size="14" class="muted bold">AI 회의록</text>
+  <text x="34" y="288" font-size="20" class="muted">▤</text><text x="69" y="287" font-size="14" class="muted bold">AI 보고서</text>
+  <text x="32" y="350" font-size="12" class="muted bold">◷  최근 활동</text><text x="32" y="380" font-size="12" fill="#adb4b7">아직 저장된 활동이 없습니다.</text>
+  <line x1="18" y1="824" x2="246" y2="824" stroke="#eceeec"/><circle cx="45" cy="858" r="19" fill="#f0ede8"/><text x="35" y="862" font-size="10" fill="#82694f" class="heavy">WV</text><text x="75" y="855" font-size="12" class="bold">월드비전 임직원</text><text x="75" y="872" font-size="10" class="muted">업무 지원 공간</text>
+  <rect x="265" width="1175" height="82" fill="#fff"/><line x1="265" y1="82" x2="1440" y2="82" stroke="#e7eae7"/>
+  <text x="301" y="38" font-size="17" class="bold">사내 지식검색</text><text x="301" y="58" font-size="11" class="muted">월드비전의 더 나은 업무를 AI와 함께하세요</text>
+  <rect x="1263" y="25" width="139" height="34" rx="17" fill="#fafbfa" stroke="#e5e8e5"/><circle cx="1282" cy="42" r="4" fill="#45b66d"/><text x="1294" y="46" font-size="11" class="muted">API 연결 준비</text>
+  <rect x="803" y="180" width="68" height="68" rx="22" fill="#eaf2ff" filter="url(#shadow)"/><path d="M837 198l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#246bfd"/>
+  <text x="693" y="286" font-size="33" class="heavy">무엇을 도와드릴까요?</text><text x="672" y="321" font-size="14" class="muted">사내 자료를 기반으로 필요한 정보를 빠르고 정확하게 찾아드려요.</text>
+  <g filter="url(#shadow)">
+    <rect x="465" y="390" width="250" height="104" rx="16" fill="#fff" stroke="#dce6f7"/><text x="486" y="417" font-size="10" class="blue heavy">01</text><text x="486" y="449" font-size="13">월드비전의 주요 사업을</text><text x="486" y="470" font-size="13">알려줘</text>
+    <rect x="727" y="390" width="250" height="104" rx="16" fill="#fff" stroke="#dce6f7"/><text x="748" y="417" font-size="10" class="blue heavy">02</text><text x="748" y="449" font-size="13">아동 후원 업무 절차를</text><text x="748" y="470" font-size="13">정리해줘</text>
+    <rect x="989" y="390" width="250" height="104" rx="16" fill="#fff" stroke="#dce6f7"/><text x="1010" y="417" font-size="10" class="blue heavy">03</text><text x="1010" y="449" font-size="13">최근 사업 보고서 내용을</text><text x="1010" y="470" font-size="13">찾아줘</text>
+  </g>
+  <rect x="468" y="716" width="768" height="100" rx="18" fill="#fff" stroke="#cfdcf2" filter="url(#shadow)"/><text x="490" y="750" font-size="13" fill="#9aa6ba">사내 업무에 대해 무엇이든 물어보세요</text><text x="491" y="793" font-size="10" class="muted">검색 결과 수  3개⌄</text><rect x="1182" y="763" width="39" height="39" rx="11" fill="#246bfd"/><path d="M1193 783l17-8-6 17-4-6z" fill="white"/>
+  <text x="709" y="841" font-size="10" fill="#a5abad">AI 답변은 정확하지 않을 수 있습니다. 중요한 내용은 반드시 확인해 주세요.</text>
+</svg>
