@@ -20,8 +20,8 @@ def split_documents(docs: List[Document], chunk_size: int = 500, chunk_overlap: 
 
 def search_similar_docs(
     query: str,
-    k: int = 3,
-    score_threshold: float = 0.3,
+    k: int = 10,
+    score_threshold: float = 0.4,
     embedding_model: str = "text-embedding-3-large",  # 1. text-embedding-3-large로 통일
     search_type: str = "similarity",                  # 2. 미사용 파라미터 옵션화
     filters: Optional[Dict[str, Any]] = None           # 3. 메타데이터 필터 옵션 추가
@@ -51,7 +51,7 @@ def search_similar_docs(
             if score <= score_threshold or score_threshold == 0.0:
                 filtered_docs.append(doc)
                 
-        return filtered_docs if filtered_docs else [doc for doc, _ in results_with_score]
+        return filtered_docs
         
     except Exception as e:
         # DB 오류 발생 시 모의(Mock) 문서로 감추지 않고, 
