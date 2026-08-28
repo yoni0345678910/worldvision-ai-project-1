@@ -1,5 +1,3 @@
-# src/worldvision_ai_project/services/report.py
-
 from worldvision_ai_project.services.rag import search_similar_docs
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -29,9 +27,9 @@ REPORT_PROMPT_TEMPLATE = """
 [작성된 보고서]:
 """
 
-def generate_ai_report(topic: str):
+def generate_ai_report(topic: str, embedding_model: str = "text-embedding-3-large"):
     try:
-        docs = search_similar_docs(query=topic, k=8)
+        docs = search_similar_docs(query=topic, k=8, embedding_model=embedding_model)
         context_text = "\n\n".join([doc.page_content for doc in docs]) if docs else "관련 사내 문서를 찾을 수 없습니다."
     except Exception as e:
         context_text = "사내 DB 연동 전 기본 참고 정보"
@@ -45,5 +43,5 @@ def generate_ai_report(topic: str):
         "topic": topic
     })
 
-    # Dict가 아닌, 문자열(String) 그대로 반환해야 ReportResponse 스키마 검증 통과!
+    # ReportResponse 스키마 규격에 맞춰 문자열(String)로 반환
     return response.content
