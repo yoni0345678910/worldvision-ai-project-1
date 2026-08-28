@@ -22,9 +22,9 @@ def search_similar_docs(
     query: str,
     k: int = 10,
     score_threshold: float = 0.55,
-    embedding_model: str = "text-embedding-3-large",  # 1. text-embedding-3-large로 통일
-    search_type: str = "similarity",                  # 2. 미사용 파라미터 옵션화
-    filters: Optional[Dict[str, Any]] = None           # 3. 메타데이터 필터 옵션 추가
+    embedding_model: str = "text-embedding-3-large",
+    search_type: str = "similarity",
+    filters: Optional[Dict[str, Any]] = None
 ) -> List[Document]:
     print("[RAG] search_similar_docs 실행됨")
 
@@ -37,10 +37,16 @@ def search_similar_docs(
             collection_name="worldvision_docs"
         )
         
-        # filters 조건 적용 가능하도록 kwargs 구성
         search_kwargs = {}
         if filters:
             search_kwargs["filter"] = filters
+
+        # search_type 조건 처리
+        if search_type == "mmr":
+            docs = vector_store.max_marginal_relevance_search(
+                query, k=k, **search_kwargs
+            )
+            return docs
 
         results_with_score = vector_store.similarity_search_with_score(
             query, 
@@ -64,7 +70,5 @@ def search_similar_docs(
         return filtered_docs
         
     except Exception as e:
-        # DB 오류 발생 시 모의(Mock) 문서로 감추지 않고, 
-        # 상위 서비스(Service Layer)에서 DB 에러(500/504 등)임을 알 수 있도록 명확히 로깅 및 예외 처리
         print(f"[RAG Error] Vector Store 연결 또는 검색 실패: {e}")
         raise RuntimeError(f"PostgreSQL/PGVector DB 연결 및 검색 오류: {str(e)}")
