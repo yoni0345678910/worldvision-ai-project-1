@@ -9,9 +9,7 @@ from worldvision_ai_project.schemas import (
     MinutesResponse,
     ReportRequest, ReportResponse
 )
-from worldvision_ai_project.services.search import run_knowledge_search
-from worldvision_ai_project.services.minutes import process_audio_minutes
-from worldvision_ai_project.services.report import generate_ai_report
+from worldvision_ai_project.agent import invoke_agent
 
 app = FastAPI(
     title="WorldVision AI Assistant API",
@@ -40,17 +38,24 @@ async def search_knowledge(request: SearchRequest):
         )
 
     try:
-        result = run_knowledge_search(
-            query=request.query,
-            session_id=request.session_id,
-            embedding_model=request.embedding_model,
-            top_k=request.top_k,
-            search_type=request.search_type,
-            filters=request.filters
-        )
+        result = invoke_agent({
+            "request_type": "search",
+            "query": request.query,
+            "session_id": request.session_id,
+            "embedding_model": request.embedding_model,
+            "top_k": request.top_k,
+            "search_type": request.search_type,
+            "filters": request.filters
+        })
+
+        if result.get("error"):
+            raise RuntimeError(result["error"])
+
+        agent_result = result.get("result", {})
+
         return SearchResponse(
-            answer=result.get("answer", "답변을 생성할 수 없습니다."),
-            sources=result.get("sources", [])
+            answer=agent_result.get("answer", "답변을 생성할 수 없습니다."),
+            sources=agent_result.get("sources", [])
         )
     except Exception as e:
         raise HTTPException(
@@ -70,14 +75,24 @@ async def generate_minutes(file: UploadFile = File(...)):
 
     try:
         content = await file.read()
-        result = process_audio_minutes(audio_file_bytes=content, file_name=file.filename)
+
+        result = invoke_agent({
+            "request_type": "minutes",
+            "file_name": file.filename,
+            "file_bytes": content
+        })
+
+        if result.get("error"):
+            raise RuntimeError(result["error"])
+
+        agent_result = result.get("result", {})
 
         # 서비스 반환값(summary, key_issues, decisions) 매핑 수정
         return MinutesResponse(
             filename=file.filename,
-            summary=result.get("summary", "요약 결과를 생성할 수 없습니다."),
-            key_issues=result.get("key_issues", []),
-            decisions=result.get("decisions", [])
+            summary=agent_result.get("summary", "요약 결과를 생성할 수 없습니다."),
+            key_issues=agent_result.get("key_issues", []),
+            decisions=agent_result.get("decisions", [])
         )
     except Exception as e:
         raise HTTPException(
@@ -95,7 +110,16 @@ async def generate_report(request: ReportRequest):
         )
 
     try:
-        report_content = generate_ai_report(topic=request.topic)
+        result = invoke_agent({
+            "request_type": "report",
+            "topic": request.topic
+        })
+
+        if result.get("error"):
+            raise RuntimeError(result["error"])
+
+        report_content = result.get("result", "")
+
         return ReportResponse(report=report_content)
     except Exception as e:
         raise HTTPException(
