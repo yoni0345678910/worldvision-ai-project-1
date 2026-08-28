@@ -1,8 +1,20 @@
+from langfuse import get_client, observe
+from dotenv import load_dotenv
+
 from typing import Optional, Dict, Any
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from worldvision_ai_project.services.rag import search_similar_docs
+from worldvision_ai_project.services.memory import (
+    add_memory,
+    search_relevant_memories,
+    trim_memory,
+)
+
+load_dotenv()
+
+langfuse = get_client()
 
 # 세션별 대화 기록 메모리 저장소
 store = {}
@@ -49,7 +61,12 @@ RAG_PROMPT_TEMPLATE = """
 {question}
 
 [답변]:
+
+[관련 과거 대화 메모리]:
+{memory_context}
 """
+
+@observe(name="knowledge-search")
 
 def run_knowledge_search(
     query: str,
@@ -97,6 +114,29 @@ def run_knowledge_search(
         )
     ) if docs else []
 
+    relevant_memories = search_relevant_memories(
+    session_id=session_id,
+    query=query,
+    top_k=3,
+)
+    print("\n===== MEMORY DEBUG =====")
+    print("QUERY:", query)
+    print("MEMORY COUNT:", len(relevant_memories))
+
+    for i, memory in enumerate(relevant_memories):
+        print(f"\n--- MEMORY {i + 1} ---")
+        print(memory.page_content)
+
+    print("========================\n")
+
+    if relevant_memories:
+        memory_context = "\n\n".join(
+          doc.page_content
+        for doc in relevant_memories
+        )
+    else:
+        memory_context = "관련 과거 대화 없음"
+
     history_obj = get_session_history(session_id)
     chat_history_messages = history_obj.messages
 
@@ -115,11 +155,23 @@ def run_knowledge_search(
     response = chain.invoke({
         "context": context_text,
         "chat_history": formatted_history,
+        "memory_context": memory_context,
         "question": query,
     })
 
     history_obj.add_user_message(query)
     history_obj.add_ai_message(response.content)
+
+    add_memory(
+        session_id=session_id,
+        user_message=query,
+        ai_message=response.content,
+)
+
+    trim_memory(
+        session_id=session_id,
+        max_memories=20,
+)
 
     return {
         "answer": response.content,

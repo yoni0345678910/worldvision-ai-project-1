@@ -3,6 +3,7 @@
 from worldvision_ai_project.services.rag import search_similar_docs
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langfuse import observe
 
 REPORT_PROMPT_TEMPLATE = """
 당신은 월드비전 보고서 작성 전문가입니다. 
@@ -25,10 +26,14 @@ REPORT_PROMPT_TEMPLATE = """
 8. 일반적인 월드비전 활동이나 상식에 근거하여 참고 문서의 빈 내용을 보완하지 마세요.
 9. 각 주요 성과는 참고 문서에서 직접 확인 가능한 내용만 작성하세요. 근거가 부족한 항목은 작성하지 마세요.
 10. 충분한 근거가 검색되지 않은 경우 보고서 분량을 억지로 채우지 말고, 확인 가능한 내용만 작성한 뒤 자료가 부족함을 명시하세요.
-
+11. 수치와 단위, 항목명은 참고 문서에서 서로의 관계가 명확히 확인되는 경우에만 함께 사용하세요.
+    서로 다른 항목의 수치나 단위를 임의로 결합하거나 변환하지 마세요.
+    특히 금액, 인원수, 비율 등의 수치는 각각 어떤 항목을 의미하는지 확인한 뒤 작성하세요.
+    
 [작성된 보고서]:
 """
 
+@observe(name="report-generation")
 def generate_ai_report(topic: str):
     try:
         docs = search_similar_docs(query=topic, k=8)

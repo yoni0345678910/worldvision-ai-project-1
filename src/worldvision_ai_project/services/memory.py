@@ -141,5 +141,3 @@ def trim_memory(session_id: str, max_memories: int = 20) -> None:
 
     memory_store[session_id] = docs[-max_memories:]
     memory_vectors[session_id] = vectors[-max_memories:]
-
-    trim_memory(session_id)

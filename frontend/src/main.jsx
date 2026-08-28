@@ -256,16 +256,63 @@ function MinutesPage() {
   const submit = async () => { if (!file) return; setLoading(true); setError(''); const form = new FormData(); form.append('file', file); try { setResult(await request('/api/v1/minutes', { method: 'POST', body: form })) } catch(e) { setError(e.message) } finally { setLoading(false) } }
   return <FeaturePage eyebrow="MEETING NOTE" title="회의를 기록하는 가장 쉬운 방법" description="회의 음성 파일을 올리면 내용을 분석해 핵심을 정리합니다.">
     <div className="upload-card"><label className="dropzone"><input type="file" accept=".flac,.m4a,.mp3,.mp4,.mpeg,.mpga,.oga,.ogg,.wav,.webm" onChange={e => { setFile(e.target.files[0]); setResult(null) }}/><div className="upload-icon"><FileAudio /></div><b>{file ? file.name : '회의 음성 파일을 선택하세요'}</b><span>{file ? '다른 파일을 선택하려면 클릭하세요' : 'MP3, M4A, WAV, MP4, WEBM 등 지원'}</span></label><button className="primary" disabled={!file || loading} onClick={submit}>{loading ? '회의록 작성 중...' : 'AI 회의록 만들기'}</button>{error && <div className="error-box">{error}</div>}</div>
-    {result && <ResultCard title={result.filename}><h3>회의 요약</h3><p>{result.summary}</p>{result.key_issues?.length > 0 && <><h3>주요 논의사항</h3><ul>{result.key_issues.map(x => <li>{x}</li>)}</ul></>}{result.decisions?.length > 0 && <><h3>결정사항</h3><ul>{result.decisions.map(x => <li>{x}</li>)}</ul></>}</ResultCard>}
+    {result && <ResultCard title={result.filename}><h3>회의 요약</h3><p>{result.summary}</p>{result.key_issues?.length > 0 && <><h3>주요 논의사항</h3><ul>{result.key_issues.map(x => <li>{x}</li>)}</ul></>}{result.decisions?.length > 0 && <><h3>결정사항</h3><ul>{result.decisions.map(x => <li>{x}</li>)}</ul></>}
+    {result.elapsed_time != null && (
+  <div className="response-time">
+    응답 시간: {result.elapsed_time}초
+  </div>
+)}
+    </ResultCard>}
   </FeaturePage>
 }
 
 function ReportPage() {
-  const [topic, setTopic] = useState(''), [report, setReport] = useState(''), [error, setError] = useState(''), [loading, setLoading] = useState(false)
-  const submit = async () => { if (!topic.trim()) return; setLoading(true); setError(''); try { let data; try { data = await request('/api/v1/report', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({topic:topic.trim()}) }) } catch(error) { if (![415, 422].includes(error.status)) throw error; const form = new FormData(); form.append('topic', topic.trim()); data = await request('/api/v1/report', { method:'POST', body:form }) } setReport(data.report) } catch(e) { setError(e.message) } finally { setLoading(false) } }
+  const [topic, setTopic] = useState(''), [report, setReport] = useState(''), [elapsedTime, setElapsedTime] = useState(null), [error, setError] = useState(''), [loading, setLoading] = useState(false)
+  const submit = async () => {
+  if (!topic.trim()) return
+
+  setLoading(true)
+  setError('')
+
+  try {
+    let data
+
+    try {
+      data = await request('/api/v1/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: topic.trim() })
+      })
+    } catch (error) {
+      if (![415, 422].includes(error.status)) throw error
+
+      const form = new FormData()
+      form.append('topic', topic.trim())
+
+      data = await request('/api/v1/report', {
+        method: 'POST',
+        body: form
+      })
+    }
+
+    setReport(data.report)
+    setElapsedTime(data.elapsed_time)
+
+  } catch (e) {
+    setError(e.message)
+  } finally {
+    setLoading(false)
+  }
+}
   return <FeaturePage eyebrow="AI BUSINESS REPORT" title="아이디어를 보고서 초안으로" description="주제를 입력하면 개요, 현황 분석, 실행 제언을 갖춘 보고서를 작성합니다.">
     <div className="report-form"><label>보고서 주제</label><textarea value={topic} onChange={e => setTopic(e.target.value)} placeholder="예: 2027년 국내 아동복지 사업 확대 전략"/><div className="topic-examples">추천 주제 <button onClick={() => setTopic('후원자 참여율 향상을 위한 디지털 캠페인 전략')}>디지털 캠페인 전략</button><button onClick={() => setTopic('지역사회 아동 돌봄 사업 개선 방안')}>아동 돌봄 개선</button></div><button className="primary" onClick={submit} disabled={!topic.trim() || loading}>{loading ? '보고서 작성 중...' : '보고서 초안 만들기'}</button>{error && <div className="error-box">{error}</div>}</div>
-    {report && <ResultCard title="생성된 보고서"><div className="markdown" dangerouslySetInnerHTML={{__html: marked.parse(report)}} /></ResultCard>}
+    {report && <ResultCard title="생성된 보고서"><div className="markdown" dangerouslySetInnerHTML={{__html: marked.parse(report)}} />
+    {elapsedTime != null && (
+  <div className="response-time">
+    응답 시간: {elapsedTime}초
+  </div>
+)}
+    </ResultCard>}
   </FeaturePage>
 }
 

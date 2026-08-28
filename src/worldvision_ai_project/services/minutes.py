@@ -3,10 +3,13 @@ import json
 from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langfuse import observe
+
 
 # OpenAI 클라이언트 초기화 (.env의 OPENAI_API_KEY 사용)
 client = OpenAI()
 
+@observe(name="minutes-generation")
 def process_audio_minutes(audio_file_bytes: bytes, file_name: str = "meeting.m4a"):
     try:
         # 1. 실제 음성 바이너리 데이터를 파일 객체 형태로 전환하여 Whisper STT 실행
