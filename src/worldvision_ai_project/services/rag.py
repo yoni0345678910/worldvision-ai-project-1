@@ -21,11 +21,13 @@ def split_documents(docs: List[Document], chunk_size: int = 500, chunk_overlap: 
 def search_similar_docs(
     query: str,
     k: int = 10,
-    score_threshold: float = 0.4,
+    score_threshold: float = 0.55,
     embedding_model: str = "text-embedding-3-large",  # 1. text-embedding-3-large로 통일
     search_type: str = "similarity",                  # 2. 미사용 파라미터 옵션화
     filters: Optional[Dict[str, Any]] = None           # 3. 메타데이터 필터 옵션 추가
 ) -> List[Document]:
+    print("[RAG] search_similar_docs 실행됨")
+
     embeddings = OpenAIEmbeddings(model=embedding_model)
     
     try:
@@ -45,6 +47,14 @@ def search_similar_docs(
             k=k,
             **search_kwargs
         )
+
+        print("\n===== VECTOR SCORE DEBUG =====")
+        for i, (doc, score) in enumerate(results_with_score):
+            print(
+                f"{i + 1}. SCORE={score:.4f} | "
+                f"SOURCE={doc.metadata.get('source', '알 수 없는 출처')}"
+            )
+        print("==============================\n")
         
         filtered_docs = []
         for doc, score in results_with_score:

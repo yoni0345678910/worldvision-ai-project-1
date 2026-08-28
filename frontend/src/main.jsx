@@ -10,14 +10,24 @@ import './styles.css'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 
 async function request(path, options = {}) {
+  const startTime = performance.now()
+
   let response
   try {
     response = await fetch(`${API_BASE}${path}`, options)
   } catch {
     throw new Error('백엔드 서버에 연결할 수 없습니다. API 주소 또는 서버 실행 상태를 확인해 주세요.')
   }
+
+  const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(2)
+
   let data
-  try { data = await response.json() } catch { data = null }
+  try {
+    data = await response.json()
+  } catch {
+    data = null
+  }
+
   if (!response.ok) {
     const detail = data?.detail
     const message = typeof detail === 'string'
@@ -25,10 +35,16 @@ async function request(path, options = {}) {
       : Array.isArray(detail)
         ? detail.map(item => item?.msg || JSON.stringify(item)).join(', ')
         : detail?.msg || `요청에 실패했습니다. (${response.status})`
+
     const error = new Error(message)
     error.status = response.status
     throw error
   }
+
+  if (data && typeof data === 'object') {
+    data.elapsed_time = Number(elapsedTime)
+  }
+
   return data
 }
 
@@ -81,35 +97,158 @@ function SearchPage() {
   const topK = 3
   const sessionId = useMemo(() => crypto.randomUUID(), [])
   const end = useRef(null)
-  useEffect(() => end.current?.scrollIntoView({ behavior: 'smooth' }), [messages, loading])
+  
+  useEffect(() => {
+    end.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
   const submit = async (preset) => {
-    const query = (preset || input).trim()
-    if (!query || loading) return
-    setMessages(v => [...v, { role: 'user', text: query }]); setInput(''); setLoading(true)
-    try {
-      let data
-      try {
-        data = await request('/api/v1/search', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, session_id: sessionId, embedding_model: 'text-embedding-3-small', top_k: topK, search_type: 'hybrid', filters: null })
-        })
-      } catch (error) {
-        if (![405, 422].includes(error.status)) throw error
-        const params = new URLSearchParams({ query, top_k: String(topK), threshold: '0.7' })
-        data = await request(`/api/v1/search?${params}`)
-      }
-      setMessages(v => [...v, { role: 'ai', text: data.answer, sources: data.sources }])
-    } catch (e) { setMessages(v => [...v, { role: 'error', text: e.message }]) }
-    finally { setLoading(false) }
-  }
+  const query = (preset || input).trim()
+  if (!query || loading) return
 
-  return <section className="chat-page">
+  setMessages(v => [...v, { role: 'user', text: query }])
+  setInput('')
+  setLoading(true)
+
+  try {
+    let data
+
+    try {
+      data = await request('/api/v1/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          session_id: sessionId,
+          embedding_model: 'text-embedding-3-large',
+          top_k: topK,
+          search_type: 'hybrid',
+          filters: null
+        })
+      })
+    } catch (error) {
+      if (![405, 422].includes(error.status)) throw error
+
+      const params = new URLSearchParams({
+        query,
+        top_k: String(topK),
+        threshold: '0.7'
+      })
+
+      data = await request(`/api/v1/search?${params}`)
+    }
+
+    setMessages(v => [
+      ...v,
+      {
+        role: 'ai',
+        text: data.answer,
+        sources: data.sources,
+        elapsedTime: data.elapsed_time
+      }
+    ])
+  } catch (e) {
+    setMessages(v => [
+      ...v,
+      { role: 'error', text: e.message }
+    ])
+  } finally {
+    setLoading(false)
+  }
+}
+
+  return (
+  <section className="chat-page">
     <div className="chat-scroll">
-      {!messages.length ? <Welcome onPrompt={submit} /> : <div className="messages">{messages.map((m, i) => <div key={i} className={`message ${m.role}`}><div className="message-icon">{m.role === 'user' ? '나' : <Bot size={18} />}</div><div><div className="bubble">{typeof m.text === 'string' ? m.text : JSON.stringify(m.text, null, 2)}</div>{m.sources?.length > 0 && <div className="sources"><b>참고 문서</b>{m.sources.map((s, j) => <span key={j}><Paperclip size={13} />{sourceLabel(s)}</span>)}</div>}</div></div>)}{loading && <div className="message ai"><div className="message-icon"><Bot size={18}/></div><div className="bubble typing"><i/><i/><i/></div></div>}<div ref={end}/></div>}
+      {!messages.length ? (
+        <Welcome onPrompt={submit} />
+      ) : (
+        <div className="messages">
+          {messages.map((m, i) => (
+            <div key={i} className={`message ${m.role}`}>
+              <div className="message-icon">
+                {m.role === 'user' ? '나' : <Bot size={18} />}
+              </div>
+
+              <div>
+                <div className="bubble">
+                  {typeof m.text === 'string'
+                    ? m.text
+                    : JSON.stringify(m.text, null, 2)}
+                </div>
+
+                {m.sources?.length > 0 && (
+                  <div className="sources">
+                    <b>참고 문서</b>
+                    {m.sources.map((s, j) => (
+                      <span key={j}>
+                        <Paperclip size={13} />
+                        {sourceLabel(s)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {m.elapsedTime != null && (
+                  <div className="response-time">
+                    응답 시간: {m.elapsedTime}초
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="message ai">
+              <div className="message-icon">
+                <Bot size={18} />
+              </div>
+              <div className="bubble typing">
+                <i />
+                <i />
+                <i />
+              </div>
+            </div>
+          )}
+
+          <div ref={end} />
+        </div>
+      )}
     </div>
-    <div className="composer-wrap"><div className="composer"><textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }} placeholder="사내 업무에 대해 무엇이든 물어보세요" rows="1" /><div className="composer-actions"><span>Enter로 질문 보내기</span><button aria-label="질문 보내기" onClick={() => submit()} disabled={!input.trim() || loading}><Send size={18}/></button></div></div><small>AI 답변은 정확하지 않을 수 있습니다. 중요한 내용은 반드시 확인해 주세요.</small></div>
+
+    <div className="composer-wrap">
+      <div className="composer">
+        <textarea
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              submit()
+            }
+          }}
+          placeholder="사내 업무에 대해 무엇이든 물어보세요"
+          rows="1"
+        />
+
+        <div className="composer-actions">
+          <span>Enter로 질문 보내기</span>
+          <button
+            aria-label="질문 보내기"
+            onClick={() => submit()}
+            disabled={!input.trim() || loading}
+          >
+            <Send size={18} />
+          </button>
+        </div>
+      </div>
+
+      <small>
+        AI 답변은 정확하지 않을 수 있습니다. 중요한 내용은 반드시 확인해 주세요.
+      </small>
+    </div>
   </section>
+)
 }
 
 function MinutesPage() {

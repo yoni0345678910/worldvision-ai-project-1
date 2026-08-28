@@ -23,13 +23,25 @@ RAG_PROMPT_TEMPLATE = """
 [답변 지침]:
 1. 이전 대화 기록은 대화 맥락을 이해하는 용도로만 사용하세요.
 2. 사내 업무/지식 질문에는 반드시 아래 [참고 문서]에 명시된 정보만 사용해 답변하세요.
-3. 참고 문서에서 질문의 근거를 확인할 수 없다면 추측하거나 일반 지식으로 보완하지 마세요.
-4. 필요한 정보가 없거나 일부만 확인되는 경우
-   "제시된 사내 문서에서 해당 정보를 찾을 수 없습니다."
-   라고 명확하게 안내하세요.
-5. 여러 수치나 정보를 비교해야 하는 질문은 참고 문서에서 각각의 값을 모두 확인한 경우에만 결론을 내리세요.
-6. 친근한 인사나 일반 대화에는 자연스럽게 응답할 수 있습니다.
+3. 참고 문서에서 확인할 수 있는 정보는 최대한 활용하여 답변하세요.
 
+4. 질문에 대한 정보가 일부만 확인되는 경우,
+   확인 가능한 내용은 먼저 답변하고
+   확인되지 않는 부분만 "제시된 사내 문서에서 확인할 수 없습니다."라고 안내하세요.
+   일부 정보가 부족하다는 이유로 전체 답변을 거부하지 마세요.
+
+5. 참고 문서에서 질문과 관련된 정보를 전혀 찾을 수 없는 경우에만
+   "제시된 사내 문서에서 해당 정보를 찾을 수 없습니다."
+   라고 답변하세요.
+
+6. 여러 수치나 정보를 비교해야 하는 질문은
+   확인 가능한 값과 확인할 수 없는 값을 구분하여 설명하세요.
+   확인되지 않은 값은 추측하지 마세요.
+
+7. 질문이 "주요 사업", "주요 성과", "주요 분야"처럼 범위가 넓은 경우에는
+   참고 문서에서 확인되는 대표적인 항목들을 요약하여 답변하세요.
+
+8. 친근한 인사나 일반 대화에는 자연스럽게 응답할 수 있습니다.
 [참고 문서]:
 {context}
 
@@ -38,7 +50,6 @@ RAG_PROMPT_TEMPLATE = """
 
 [답변]:
 """
-
 
 def run_knowledge_search(
     query: str,
@@ -56,11 +67,27 @@ def run_knowledge_search(
         filters=filters,
     )
 
-    context_text = (
-        "\n\n".join(doc.page_content for doc in docs)
-        if docs
-        else "참고할 문서가 없습니다."
-    )
+    print("\n===== RAG DEBUG =====")
+    print("QUERY:", query)
+    print("DOC COUNT:", len(docs))
+
+    for i, doc in enumerate(docs):
+        print(f"\n--- DOC {i + 1} ---")
+        print("SOURCE:", doc.metadata.get("source"))
+        print("PAGE:", doc.metadata.get("page"))
+        print("CONTENT:", doc.page_content[:500])
+
+    print("=====================\n")
+
+    if docs:
+        context_text = "\n\n".join(
+            f"[출처: {doc.metadata.get('source', '알 수 없는 출처')}, "
+            f"페이지: {doc.metadata.get('page', '알 수 없음')}]\n"
+            f"{doc.page_content}"
+            for doc in docs
+        )
+    else:
+        context_text = "참고할 문서가 없습니다."
 
     # 동일 문서의 여러 chunk가 검색되어도 출처는 한 번만 반환
     sources = list(
