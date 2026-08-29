@@ -196,6 +196,207 @@ npm run dev
 
 프로젝트 루트에서 다음 명령어를 실행하여 API 및 LangGraph Agent 테스트를 수행할 수 있습니다.
 
+## 🏗️ 7. 시스템 아키텍처
+
+WorldVision AI Assistant는 **FastAPI 기반 API Layer**, **LangGraph 기반 Agent**, 기능별 **AI Service**, 그리고 **PostgreSQL + pgvector 기반 Data Layer**로 구성되어 있습니다.
+
+### 전체 처리 흐름
+
+```text
+User
+  ↓
+Frontend (React)
+  ↓
+FastAPI + Pydantic
+  │
+  │  Request / Response Schema Validation
+  ↓
+LangGraph Agent
+  │
+  ├── Knowledge Search
+  │       ↓
+  │    Hybrid Retrieval
+  │    (Vector Search + Keyword Search)
+  │       ↓
+  │    Source / Page 기반 관련 Chunk 확장
+  │       ↓
+  │    Reranking
+  │       ↓
+  │    LLM Answer Generation
+  │
+  ├── Meeting Minutes
+  │       ↓
+  │    Whisper STT → LLM 구조화
+  │
+  └── Report Generation
+          ↓
+       LLM 기반 보고서 생성
+
+        ↕
+PostgreSQL + pgvector
+        ↕
+Session Memory
+
+Langfuse → Agent / LLM / RAG Trace Monitoring
+```
+
+### RAG 검색 구조
+
+사내 지식검색은 단순 Vector Search만 사용하는 방식에서 확장하여, 검색 정확도와 근거 검색 안정성을 높이기 위한 **Hybrid Retrieval 구조**를 적용했습니다.
+
+1. **Vector Search**를 통해 질문과 의미적으로 유사한 문서를 검색합니다.
+2. **Keyword Search**를 병행하여 주요 용어와 수치가 포함된 문서를 추가로 탐색합니다.
+3. 검색된 문서의 **Source / Page Metadata**를 기준으로 동일 페이지의 관련 Chunk를 추가 조회합니다.
+4. 수집된 Chunk를 질문과의 관련도에 따라 **Reranking**합니다.
+5. 최종 Context를 LLM에 전달하여 **문서 근거 기반 답변**을 생성합니다.
+
+이를 통해 Vector Search에서 정답 Chunk가 누락되거나, 동일 페이지에 존재하는 핵심 수치가 Context에 포함되지 않던 문제를 보완했습니다.
+
 ```bash
 uv run pytest
 ```
+
+## 📁 8. 프로젝트 구조
+
+```text
+worldvision-ai-project/
+├── frontend/                       # React 기반 사용자 인터페이스
+│   └── src/
+│       └── main.jsx
+│
+├── src/
+│   └── worldvision_ai_project/
+│       ├── services/
+│       │   ├── ingestion.py        # 문서 전처리 및 Vector DB 적재
+│       │   ├── memory.py           # 세션 및 대화 메모리 관리
+│       │   ├── minutes.py          # STT 기반 AI 회의록 생성
+│       │   ├── rag.py              # RAG 검색 및 문서 Retrieval
+│       │   ├── report.py           # AI 보고서 생성
+│       │   └── search.py           # 지식검색 및 Reranking
+│       │
+│       ├── agent.py                # LangGraph Agent Workflow
+│       ├── main.py                 # FastAPI Application / API Endpoint
+│       ├── schemas.py              # Request / Response Schema
+│       └── __init__.py
+│
+├── tests/                          # Pytest 기반 테스트
+├── docs/
+│   └── images/                     # README 데모 이미지
+│
+├── pyproject.toml                  # 프로젝트 의존성 및 설정
+└── README.md
+```
+
+각 AI 기능은 `services` 단위로 분리하고, `agent.py`의 LangGraph Workflow를 통해 요청을 적절한 서비스로 라우팅하도록 구성했습니다.
+
+## 🧪 9. 테스트 및 성능 평가
+
+서비스의 기능 안정성과 RAG 검색 성능을 검증하기 위해 **Pytest 기반 기능 테스트**와 **RAG 정량평가**를 수행했습니다.
+
+### 기능 테스트
+
+FastAPI API와 LangGraph Agent의 주요 기능 및 예외 처리 동작을 테스트했습니다.
+
+- 지식검색 / 회의록 / 보고서 / Fallback Routing 검증
+- Health Check 및 API 입력값 검증
+- LangGraph Agent 기능별 Routing 검증
+- 총 **8개 테스트 통과**
+
+```bash
+uv run pytest
+```
+
+### RAG 정량평가
+
+사내 지식검색의 성능을 확인하기 위해 단순 사실형, 조건형, 비교형, 표현 변형형, 답변 불가형 등 **10개 질문**으로 정량평가를 수행했습니다.
+
+| 평가 항목 | 배점 |
+| --- | ---: |
+| 검색 정확도 | 20 |
+| 답변 정확도 | 20 |
+| 근거 충실도 | 15 |
+| 답변 완전성 | 15 |
+| 답변 불가 처리 | 15 |
+| 표현 변형 대응 | 10 |
+| 응답 시간 | 5 |
+| **총점** | **100** |
+
+초기 평가에서 일부 비교·정의형 질문의 관련 Chunk가 Vector Search 결과에서 누락되는 문제를 확인했습니다.
+
+이를 개선하기 위해 **Vector Search + Keyword Search 기반 Hybrid Retrieval**, **Source/Page Metadata 기반 관련 Chunk 확장**, **Reranking**을 적용했습니다.
+
+### 평가 결과
+
+| 구분 | 점수 |
+| --- | ---: |
+| 개선 전 | **74.69 / 100** |
+| 개선 후 | **98.25 / 100** |
+| 향상 | **+23.56점** |
+
+개선 후 동일한 평가를 **3회 반복 수행하여 평균 98.25점**을 확인했습니다.
+
+### 평가 자료
+
+정량평가의 세부 문항별 결과와 채점 내역은 아래 파일에서 확인할 수 있습니다.
+
+- [RAG 정량평가 - 개선 전](docs/evaluation/최종평가_개선전.xlsx)
+- [RAG 정량평가 - 개선 후](docs/evaluation/최종평가_개선후.xlsx)
+
+## 🔧 10. 트러블슈팅
+
+프로젝트 통합 및 테스트 과정에서 발생한 주요 문제를 분석하고 다음과 같이 개선했습니다.
+
+### 1. RAG 검색 시 정답 Chunk 누락
+
+**문제**
+
+문서에 정답이 존재함에도 일부 비교형·정의형 질문에서 정확한 근거가 검색되지 않거나, 의미가 유사한 다른 지표를 기반으로 잘못된 답변이 생성되는 문제가 발생했습니다.
+
+**원인**
+
+Vector Search만으로 검색할 경우 정답이 포함된 Chunk가 검색 결과에서 누락되거나, 관련 Chunk와 동일한 페이지에 존재하는 핵심 정보가 최종 Context에 포함되지 않는 경우가 있었습니다.
+
+**해결**
+
+- Vector Search와 Keyword Search를 결합한 **Hybrid Retrieval** 적용
+- 검색 결과의 Source/Page Metadata를 활용한 **동일 페이지 Chunk 추가 조회**
+- 질문과의 관련도를 기준으로 **Reranking** 수행
+
+**결과**
+
+비교형·정의형 및 표현 변형 질문의 검색 정확도가 개선되었으며, RAG 정량평가 점수가 **74.69점에서 98.25점으로 향상**되었습니다.
+
+---
+
+### 2. 팀 개발환경 및 모듈 통합 문제
+
+**문제**
+
+팀원별 개발환경과 브랜치를 통합하는 과정에서 패키지 의존성, Import 경로 및 실행 방식의 차이로 일부 기능이 정상적으로 실행되지 않는 문제가 발생했습니다.
+
+**해결**
+
+- `uv` 기반으로 프로젝트 의존성 및 실행환경 통일
+- 프로젝트 Package 구조와 Import 경로 정리
+- 기능별 Branch 통합 후 API 및 LangGraph Workflow 테스트 수행
+- Pytest를 활용하여 주요 API와 Routing 동작 검증
+
+**결과**
+
+팀원별 개발환경 차이로 인한 오류를 줄이고, 통합 환경에서 주요 기능이 정상적으로 동작함을 확인했습니다.
+
+---
+
+### 3. API Request / Response Schema 불일치
+
+**문제**
+
+기능 통합 과정에서 API가 반환하는 데이터와 정의된 Response Schema가 일치하지 않아 서버 오류가 발생하는 문제가 있었습니다.
+
+**해결**
+
+FastAPI와 Pydantic 기반의 Request / Response Schema를 점검하고 실제 서비스 반환값과 일치하도록 데이터 구조를 수정했습니다.
+
+**결과**
+
+지식검색·회의록·보고서 API의 입출력 구조를 정리하여 Frontend와 Backend 간 안정적인 데이터 전달이 가능하도록 개선했습니다.
