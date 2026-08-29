@@ -1,5 +1,4 @@
-👉 [WorldVision AI Assistant 바로가기](https://worldvision-ai-371850336678.asia-northeast3.run.app/docs)
-현재 테스트 배포 버전이며, 최종 배포 완료 후 서비스 URL로 업데이트 예정입니다.
+👉 [WorldVision AI Assistant 바로가기]([https://worldvision-ai-371850336678.asia-northeast3.run.app/docs](https://worldvision-frontend-371850336678.asia-northeast3.run.app/))
 
 # 🌍 WorldVision AI Assistant (월드비전 AI 어시스턴트)
 
