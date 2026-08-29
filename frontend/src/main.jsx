@@ -94,7 +94,7 @@ function SearchPage() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const topK = 3
+  const topK = 20
   const sessionId = useMemo(() => crypto.randomUUID(), [])
   const end = useRef(null)
   

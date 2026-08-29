@@ -17,7 +17,7 @@ class SearchRequest(BaseModel):
         default="text-embedding-3-large",  # 👈 text-embedding-3-large로 변경!
         description="사용할 임베딩 모델"
     )
-    top_k: int = Field(default=3, ge=1, le=10, description="반환할 상위 문서 개수")
+    top_k: int = Field(default=3, ge=1, le=20, description="반환할 상위 문서 개수")
     search_type: str = Field(default="hybrid", description="검색 방식")
     filters: Optional[Dict[str, Any]] = Field(default=None, description="메타데이터 필터 조건")
 
