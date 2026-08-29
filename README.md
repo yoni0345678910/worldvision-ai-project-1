@@ -3,9 +3,6 @@
 
 # 🌍 WorldVision AI Assistant (월드비전 AI 어시스턴트)
 
-
-월드비전 임직원의 업무 효율 향상 및 단순 반복 업무 축소를 위한 **AI 백엔드 프로토타입 시스템**입니다.
-
 ---
 
 ## 📌 1. 프로젝트 소개
@@ -89,7 +86,26 @@ WorldVision AI Assistant는 **사내 지식검색, AI 회의록 작성, AI 보�
 ![AI 보고서 데모](docs/images/보고서_데모.png)
 
 
-### 1) 환경 변수 설정
+## 🚀 6. 실행 방법 (Local Run)
+
+### 1) 프로젝트 설치
+
+저장소를 Clone한 후 프로젝트 디렉터리로 이동합니다.
+
+```bash
+git clone <repository-url>
+cd worldvision_ai_integration
+```
+
+`uv`를 사용하여 백엔드 의존성을 설치합니다.
+
+```bash
+uv sync
+```
+
+---
+
+### 2) 백엔드 환경 변수 설정
 
 프로젝트 최상위 경로에 `.env` 파일을 생성하고 아래 환경 변수를 설정합니다.
 
@@ -98,9 +114,88 @@ WorldVision AI Assistant는 **사내 지식검색, AI 회의록 작성, AI 보�
 OPENAI_API_KEY=your_openai_api_key
 
 # PostgreSQL / pgvector
-DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_URL=your_database_url
 
 # Langfuse
 LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
 LANGFUSE_SECRET_KEY=your_langfuse_secret_key
-LANGFUSE_HOST=https://cloud.langfuse.com
+LANGFUSE_HOST=your_langfuse_host
+```
+
+| 환경 변수 | 설명 |
+| :--- | :--- |
+| `OPENAI_API_KEY` | OpenAI LLM 및 Embedding API 사용 |
+| `DATABASE_URL` | PostgreSQL/pgvector 데이터베이스 연결 |
+| `LANGFUSE_PUBLIC_KEY` | Langfuse 프로젝트 연결 |
+| `LANGFUSE_SECRET_KEY` | Langfuse 인증 |
+| `LANGFUSE_HOST` | Langfuse 서버 주소 |
+
+> ⚠️ `.env` 파일에는 API Key 및 데이터베이스 접속 정보와 같은 민감한 정보가 포함되므로 Git에 커밋하지 말아주세요.
+
+---
+
+### 3) 프론트엔드 환경 변수 설정
+
+`frontend` 디렉터리에 `.env` 파일을 생성하고 아래 환경 변수를 설정합니다.
+
+```env
+VITE_API_BASE_URL=
+VITE_PROXY_TARGET=http://localhost:8000
+```
+
+| 환경 변수 | 설명 |
+| :--- | :--- |
+| `VITE_API_BASE_URL` | 프론트엔드에서 사용할 백엔드 API 기본 주소 |
+| `VITE_PROXY_TARGET` | 로컬 개발 환경에서 API 요청을 전달할 백엔드 서버 주소 |
+
+로컬 개발 환경에서는 Vite Proxy를 통해 `http://localhost:8000`에서 실행 중인 백엔드로 API 요청을 전달합니다.
+
+---
+
+### 4) 백엔드 서버 실행
+
+프로젝트 루트에서 다음 명령어를 실행합니다.
+
+```bash
+uv run uvicorn worldvision_ai_project.main:app --reload
+```
+
+서버 실행 후 Swagger UI에서 API를 확인할 수 있습니다.
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+### 5) 프론트엔드 실행
+
+새 터미널을 열고 `frontend` 디렉터리로 이동합니다.
+
+```bash
+cd frontend
+```
+
+프론트엔드 패키지를 설치합니다.
+
+```bash
+npm install
+```
+
+개발 서버를 실행합니다.
+
+```bash
+npm run dev
+```
+
+실행 후 터미널에 표시되는 Local URL을 통해 서비스 화면에 접속할 수 있습니다.
+
+---
+
+### 6) 테스트 실행
+
+프로젝트 루트에서 다음 명령어를 실행하여 API 및 LangGraph Agent 테스트를 수행할 수 있습니다.
+
+```bash
+uv run pytest
+```
