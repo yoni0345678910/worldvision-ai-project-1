@@ -339,8 +339,8 @@ uv run pytest
 
 정량평가의 세부 문항별 결과와 채점 내역은 아래 파일에서 확인할 수 있습니다.
 
-- [RAG 정량평가 - 개선 전](docs/evaluation/월드비전_최종_평가_개선_전.xlsx)
-- [RAG 정량평가 - 개선 후](docs/evaluation/월드비전_최종_평가_개선_후.xlsx)
+- [RAG 정량평가 - 개선 전](docs/evaluation/월드비전AI_최종_평가_개선_전.xlsx)
+- [RAG 정량평가 - 개선 후](docs/evaluation/월드비전AI_최종_평가_개선_후.xlsx)
 
 ## 🔧 10. 트러블슈팅
 
