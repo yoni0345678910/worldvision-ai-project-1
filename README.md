@@ -196,6 +196,12 @@ npm run dev
 
 프로젝트 루트에서 다음 명령어를 실행하여 API 및 LangGraph Agent 테스트를 수행할 수 있습니다.
 
+```bash
+uv run pytest
+```
+
+---
+
 ## 🏗️ 7. 시스템 아키텍처
 
 WorldVision AI Assistant는 **FastAPI 기반 API Layer**, **LangGraph 기반 Agent**, 기능별 **AI Service**, 그리고 **PostgreSQL + pgvector 기반 Data Layer**로 구성되어 있습니다.
@@ -252,10 +258,6 @@ Langfuse → Agent / LLM / RAG Trace Monitoring
 
 이를 통해 Vector Search에서 정답 Chunk가 누락되거나, 동일 페이지에 존재하는 핵심 수치가 Context에 포함되지 않던 문제를 보완했습니다.
 
-```bash
-uv run pytest
-```
-
 ## 📁 8. 프로젝트 구조
 
 ```text
@@ -269,8 +271,8 @@ worldvision-ai-project/
 │       ├── services/
 │       │   ├── ingestion.py        # 문서 전처리 및 Vector DB 적재
 │       │   ├── memory.py           # 세션 및 대화 메모리 관리
-│       │   ├── minutes.py          # STT 기반 AI 회의록 생성
-│       │   ├── rag.py              # RAG 검색 및 문서 Retrieval
+│       │   ├── minutes.py          # Whisper STT 기반 AI 회의록 생성
+│       │   ├── rag.py              # RAG Retrieval 및 문서 검색
 │       │   ├── report.py           # AI 보고서 생성
 │       │   └── search.py           # 지식검색 및 Reranking
 │       │
@@ -279,15 +281,24 @@ worldvision-ai-project/
 │       ├── schemas.py              # Request / Response Schema
 │       └── __init__.py
 │
-├── tests/                          # Pytest 기반 테스트
+├── tests/                          # Pytest 기반 API / Agent 테스트
+│
+├── data/
+│   └── source_docs/                # RAG 원본 문서
+│
 ├── docs/
-│   └── images/                     # README 데모 이미지
+│   ├── images/                     # README 데모 및 아키텍처 이미지
+│   └── evaluation/                 # RAG 정량평가 결과
+│       ├── 월드비전_AI_최종_평가_개선_전.xlsx
+│       └── 월드비전_AI_최종_평가_개선_후.xlsx
 │
 ├── pyproject.toml                  # 프로젝트 의존성 및 설정
-└── README.md
+└── README.md                       # 프로젝트 설명
 ```
 
-각 AI 기능은 `services` 단위로 분리하고, `agent.py`의 LangGraph Workflow를 통해 요청을 적절한 서비스로 라우팅하도록 구성했습니다.
+각 AI 기능은 `services` 단위로 분리하고, `agent.py`의 **LangGraph Workflow**를 통해 사용자 요청을 지식검색·회의록·보고서 기능으로 라우팅하도록 구성했습니다.
+
+RAG 원본 문서는 `data/source_docs`에서 관리하며, 정량평가 결과는 `docs/evaluation`에서 확인할 수 있습니다.
 
 ## 🧪 9. 테스트 및 성능 평가
 
