@@ -34,35 +34,73 @@
 * **Language**: Python 3.14
 * **Package Manager**: `uv`
 * **Framework**: FastAPI, Uvicorn
-* **AI & LLM**: LangChain, OpenAI API (GPT-4o / GPT-4o-mini, Whisper STT)
+* **AI & LLM**: LangChain, LangGraph, OpenAI API (GPT-4o / GPT-4o-mini, Whisper STT)
 * **Database / Vector Search**: PostgreSQL, `pgvector`
+* **Monitoring / Tracing**: Langfuse
 
 ---
 
 ## 🔥 4. 주요 기능 설명
 
 ### 1) 🔍 사내 지식검색 API (`/api/v1/search`)
-* PostgreSQL/pgvector 기반의 임베딩 문서 유사도 검색(RAG) 지원
-* 사용자 질문에 맞춰 사내 문서 내 정확한 출처(Source)와 함께 답변 생성
+* PostgreSQL/pgvector 기반 RAG 지식검색 및 사내 문서 기반 답변 생성
+* Vector Search와 Keyword Search를 결합한 Hybrid Retrieval 적용
+* Source/Page Metadata 기반 동일 페이지 Chunk 조회 및 Reranking을 통한 검색 정확도 개선
+* 답변과 함께 참고 문서의 출처(Source) 제공
 
 ### 2) 📝 AI 회의록 작성 API (`/api/v1/minutes`)
-* 회의 음성 파일(mp3, m4a 등) 업로드 및 Whisper 모델 기반 STT(Text Extraction) 수행
-* 회의 요약, 주요 논의사항, 최종 결정사항을 구조화된 JSON 형태로 자동 추출
+* 회의 음성 파일(mp3, m4a 등) 업로드 및 Whisper 기반 STT 수행
+* 회의 요약, 주요 논의사항, 결정사항을 구조화하여 자동 생성
+* 업로드된 회의 내용을 기반으로 AI 회의록 생성
 
-### 3) 📊 AI 보고서 생성 API (`/api/v1/report` - 예정)
-* 수집된 개요 및 데이터를 바탕으로 AI 자동 보고서 초안 생성
+### 3) 📊 AI 보고서 생성 API (`/api/v1/report`)
+* 사용자가 입력한 주제를 기반으로 AI 보고서 초안 생성
+* 보고서 제목, 요약 및 본문을 구조화하여 제공
 
----
+### 4) 🤖 LangGraph 기반 AI Agent
+* LangGraph를 활용하여 사용자 요청에 따라 지식검색, 회의록, 보고서 기능으로 자동 라우팅
+* 기능별 서비스 모듈을 하나의 Agent Workflow로 통합
 
-## 📸 5. 데모 스크린샷
+### 5) 🧠 대화 Memory
+* Session 기반 대화 History 관리
+* Semantic Memory를 활용하여 이전 대화의 관련 정보를 검색하고 답변 Context에 반영
 
-<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/f311c6ac-adca-459b-989a-545cac5c3456" />
+### 6) 📈 Langfuse 모니터링
+* Langfuse를 활용한 AI 요청 및 실행 과정 Tracing
+* RAG 검색 및 Agent Workflow의 실행 흐름 모니터링
 
----
+## 📸 5. 데모 화면
 
-## 🚀 6. 실행 방법 (Local Run)
+WorldVision AI Assistant는 **사내 지식검색, AI 회의록 작성, AI 보고서 생성** 기능을 하나의 웹 인터페이스에서 제공합니다.
+
+### 🔍 사내 지식검색
+사내 문서를 기반으로 사용자의 질문과 관련된 정보를 검색하고, 출처를 기반으로 답변을 생성합니다.
+
+![사내 지식검색 데모](docs/images/지식검색_데모.png)
+
+### 📝 AI 회의록
+회의 음성 파일을 업로드하면 STT를 통해 내용을 변환하고, 주요 논의사항과 결정사항을 구조화된 회의록으로 생성합니다.
+
+![AI 회의록 데모](docs/images/회의록_데모.png)
+
+### 📊 AI 보고서
+사용자가 보고서 주제를 입력하면 관련 내용을 바탕으로 구조화된 보고서 초안을 생성합니다.
+
+![AI 보고서 데모](docs/images/보고서_데모.png)
+
 
 ### 1) 환경 변수 설정
-최상위 경로에 `.env` 파일 생성 후 OpenAI API 키 등록:
+
+프로젝트 최상위 경로에 `.env` 파일을 생성하고 아래 환경 변수를 설정합니다.
+
 ```env
-OPENAI_API_KEY=sk-proj-...
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
+
+# PostgreSQL / pgvector
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:PORT/DATABASE
+
+# Langfuse
+LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
+LANGFUSE_SECRET_KEY=your_langfuse_secret_key
+LANGFUSE_HOST=https://cloud.langfuse.com
